@@ -17,7 +17,7 @@ public class WarehouseService {
 
     @CircuitBreaker(
             name = "warehouseCB",
-            fallbackMethod = "checkStockFallback"
+            fallbackMethod = "checkWarehouseFallback"
     )
     public Object checkStock(Long medicineId) {
 
@@ -27,19 +27,14 @@ public class WarehouseService {
                 .body(Object.class);
     }
 
-    public Object checkStockFallback(
-            Long medicineId,
-            Throwable throwable
+    public record WarehouseError(
+            int status,
+            String error,
+            String message
     ) {
-
-        return new WarehouseError(
-                503,
-                "Warehouse Service Unavailable",
-                "Warehouse Service hiện không khả dụng. Vui lòng thử lại sau."
-        );
     }
 
-    public record WarehouseError(
+    public record WarehouseFallbackResponse(
             int status,
             String error,
             String message

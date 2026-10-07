@@ -1,21 +1,33 @@
 package org.example.pharmacyservice.controller;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.example.pharmacyservice.event.OrderEvent;
+import org.example.pharmacyservice.service.OrderEventProducer;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @RestController
+@RequestMapping("/api/v1/pharmacy")
 public class PharmacyController {
 
-    @Value("${app.branch-name}")
-    private String branchName;
+    private final OrderEventProducer orderEventProducer;
 
-    @Value("${app.hotline}")
-    private String hotline;
+    public PharmacyController(OrderEventProducer orderEventProducer) {
+        this.orderEventProducer = orderEventProducer;
+    }
 
-    @GetMapping("/api/v1/pharmacy/info")
-    public String getPharmacyInfo() {
-        return "Chi nhánh: " + branchName
-                + " - Hotline: " + hotline;
+    @PostMapping("/sell")
+    public ResponseEntity<?> sellMedicine(
+            @RequestBody OrderEvent event
+    ) {
+
+        event.setTimestamp(LocalDateTime.now());
+
+        orderEventProducer.sendOrderEvent(event);
+
+        return ResponseEntity.ok(
+                "Thanh toán thành công và đã gửi OrderEvent lên Kafka."
+        );
     }
 }
